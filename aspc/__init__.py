@@ -1,11 +1,15 @@
+import sys
 import numpy as np
 from scipy.special import binom
+from fractions import gcd
 
 class ASPC(object):
-    def __init__(self, data, chainlnth=2, damp=None):
+    def __init__(self, data, chainlnth=2, damp=None, debug=False):
         """
         initialize ASPC Python object
         """
+
+        self.debug = debug
 
         self.chainlnth = chainlnth
 
@@ -44,7 +48,7 @@ class ASPC(object):
         """
         """
 
-        #call f to get prediction
+        #call f to get correction on top of prediction
 
         crdat = []
 
@@ -76,7 +80,25 @@ class ASPC(object):
         """
         """
 
-        return np.power(-1, k+1) * k * binom (2 * n + 2, n + 1 - k ) / binom (2 * n, n);
+        nmrtr = k * binom(2 * n + 2, n + 1 - k)
+        dnmntr = binom(2 * n, n)
+        sgn = np.power(-1, k+1)
+
+        #FUDO| checking against Baranyai/Kiss values (up to k = 4: http://pubs.acs.org/doi/full/10.1021/ct5009069)
+        if self.debug:
+
+            gcd_val = gcd(nmrtr, dnmntr)
+            print("COEFF is %i %i / %i" %(sgn, nmrtr / gcd_val, dnmntr / gcd_val))
+
+            frst = sgn * nmrtr / dnmntr
+            scnd = np.power(-1, k+1) * k * binom (2 * n + 2, n + 1 - k ) / binom (2 * n, n);
+
+            if frst != scnd:
+                print("EEEEERRROR.....")
+                sys.exit(1)
+
+        return sgn * nmrtr / dnmntr
+        #return np.power(-1, k+1) * k * binom (2 * n + 2, n + 1 - k ) / binom (2 * n, n);
 
     def get_default_damp(self, lnth):
         """
