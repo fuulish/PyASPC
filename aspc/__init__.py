@@ -31,6 +31,7 @@ class ASPC(object):
             self.history.append(np.zeros_like(data))
 
         self.history = self.update_history(self.history, data)
+        self.countme = 1
 
     def get_coefficients(self, chainlnth=None):
         """
@@ -95,6 +96,10 @@ class ASPC(object):
         """
         """
 
+        if self.countme <= self.chainlnth:
+            self.coeffs = self.get_coefficients(self.countme - 2)
+            print self.coeffs
+
         #FUDO| should I pass everyting as argument again?
 
         prdat = self.predict(self.history, self.coeffs)
@@ -106,6 +111,8 @@ class ASPC(object):
         data = self.get_final_solution(prdat, crdat)
 
         self.history = self.update_history(self.history, data)
+
+        self.countme += 1
 
         return data
 
