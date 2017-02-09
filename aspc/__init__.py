@@ -20,17 +20,18 @@ class ASPC(object):
 
         self.totlnth = chainlnth + 2
 
-        self.coeffs = self.get_coefficients()
+        self.coeffs = self.get_coefficients(chainlnth=self.chainlnth)
 
         self.history = []
         for i in range(self.totlnth):
             self.history.append([])
 
-    def get_coefficients(self):
+    def get_coefficients(self, chainlnth=None):
         """
         """
 
-        chainlnth = self.chainlnth
+        if chainlnth is None:
+            chainlnth = self.chainlnth
 
         coeffs = self.generate_coefficients(chainlnth)
 
@@ -112,6 +113,8 @@ class ASPC(object):
 
         self.chainlnth = chainlnth
         self.totlnth = self.chainlnth + 2
+
+        self.coeffs = self.get_coefficients(chainlnth=self.chainlnth)
 
         #FUDO| need to update all other involved quantities
         #FUDO| update history
