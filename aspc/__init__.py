@@ -3,15 +3,18 @@ import numpy as np
 from scipy.special import binom
 from fractions import gcd
 
+#FUDO| make more methods have less arguments, only those where external interference is expected
+
 class ASPC(object):
-    def __init__(self, data, chainlnth=2, damp=None, debug=False):
+    def __init__(self, data, chainlnth=2, damp=None, debug=False, correction=None, corrargs=()):
         """
         initialize ASPC Python object
         """
 
         self.debug = debug
-
         self.chainlnth = chainlnth
+        self.correction = correction
+        self.corrargs = corrargs
 
         if damp is not None:
             self.damp = damp
@@ -22,9 +25,12 @@ class ASPC(object):
 
         self.coeffs = self.get_coefficients(chainlnth=self.chainlnth)
 
+        #FUDO| this is crap
         self.history = []
         for i in range(self.totlnth):
-            self.history.append([])
+            self.history.append(np.zeros_like(data))
+
+        self.history = self.update_history(self.history, data)
 
     def get_coefficients(self, chainlnth=None):
         """
@@ -37,29 +43,71 @@ class ASPC(object):
 
         return coeffs
 
-    def predict(self, data_history, coeffs):
+    def predict(self, history, coeffs):
         """
         """
 
-        prdat = np.zeros_like(data_history[0])
+        prdat = np.zeros_like(history[0])
+
+        for c, h in zip(coeffs, history):
+            prdat += c*h
 
         return prdat
 
-    def correct(self, f):
+    def correct(self, prdat, func, corrargs=()):
         """
         """
 
         #call f to get correction on top of prediction
 
-        crdat = []
+        if func is None:
+            sys.stdout('Cannot do correction without corresponding function\n')
+            sys.exit(1)
+
+        crdat = func(prdat, *corrargs)
 
         return crdat
 
-    def get_final_solution(self, prdat, crdat, damp):
+    def get_final_solution(self, prdat, crdat, damp=None):
         """
         """
 
+        if damp is None:
+            damp = self.damp
+
         return damp * crdat + (1.-damp) * prdat
+
+    def update_history(self, history, data):
+        """
+        """
+
+        #FUDO| is that fine w.r.t. garbage collection later on?
+        #FUDO| i.e., what will happen to history[-1] after call history = update_history(history, data)
+
+        newhist = [data]
+
+        for h in history[:-1]:
+            newhist.append(h)
+
+        return newhist
+
+    def next(self):
+        """
+        """
+
+        #FUDO| should I pass everyting as argument again?
+
+        prdat = self.predict(self.history, self.coeffs)
+
+        #the predicted data should be used in the correction function according to what is appropriate there
+
+        crdat = self.correct(prdat, self.correction, self.corrargs)
+
+        data = self.get_final_solution(prdat, crdat)
+
+        self.history = self.update_history(self.history, data)
+
+        return data
 
     def generate_coefficients(self, lnth):
         """
