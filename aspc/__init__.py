@@ -96,6 +96,7 @@ class ASPC(object):
         """
         """
 
+        #FUDO| should we use also a different total chain length? What would happen then?
         if self.countme <= self.totlnth:
             self.coeffs = self.get_coefficients(self.countme - 2)
             print 'COEFFS', self.coeffs
@@ -123,6 +124,9 @@ class ASPC(object):
         coeffs = []
 
         ordpo = lnth + 1
+
+        #FUDO| may get totlnth as an argument as well
+        #FUDO| check whether lnth+2 > totlnth (consistency)
 
         totlnth = self.totlnth
 
