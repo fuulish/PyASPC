@@ -96,9 +96,9 @@ class ASPC(object):
         """
         """
 
-        if self.countme <= self.chainlnth:
+        if self.countme <= self.totlnth:
             self.coeffs = self.get_coefficients(self.countme - 2)
-            print self.coeffs
+            print 'COEFFS', self.coeffs
 
         #FUDO| should I pass everyting as argument again?
 
