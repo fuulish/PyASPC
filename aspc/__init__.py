@@ -30,7 +30,7 @@ class ASPC(object):
         for i in range(self.totlnth):
             self.history.append(np.zeros_like(data))
 
-        self.history = self.update_history(self.history, data)
+        self.update_history(self.history, data)
         self.countme = 1
 
     def get_coefficients(self, chainlnth=None):
@@ -90,7 +90,7 @@ class ASPC(object):
         for h in history[:-1]:
             newhist.append(h)
 
-        return newhist
+        self.history = newhist
 
     def next(self):
         """
@@ -111,7 +111,7 @@ class ASPC(object):
 
         data = self.get_final_solution(prdat, crdat)
 
-        self.history = self.update_history(self.history, data)
+        self.update_history(self.history, data)
 
         self.countme += 1
 
