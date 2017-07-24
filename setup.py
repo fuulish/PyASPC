@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='aspc',
-      version='0.1',
+      version='0.2',
       description='Always-stable predictor corrector algorithm',
       url='http://github.com/fuulish/PyASPC',
       author='Frank Uhlig',
