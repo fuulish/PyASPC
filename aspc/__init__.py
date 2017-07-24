@@ -2,6 +2,7 @@ import sys
 import numpy as np
 from scipy.special import binom
 from fractions import gcd
+from collections import deque
 
 #FUDO| make more methods have less arguments, only those where external interference is expected
 
@@ -11,23 +12,38 @@ class ASPC(object):
         initialize ASPC Python object
         """
 
+        #FUX history and damp to properties as well?
+
+        self.history = deque([])
+        self.update_history(data)
+
         self.debug = debug
+        self._totlength = chainlnth + 2
         self.chainlength = chainlnth
         self.correction = correction
         self.corrargs = corrargs
+        self.damp = damp
 
-        if damp is not None:
-            self.damp = damp
-        else:
-            self.damp = ASPC.default_damp(self.chainlength)
-
-        #FUDO| this is crap
-        self.history = []
-        for i in range(self._totlength):
-            self.history.append(np.zeros_like(data))
-
-        self.update_history(self.history, data)
         self.countme = 1
+
+    @property
+    def damp(self):
+        """
+        """
+        return self._damp
+
+    @damp.setter
+    def damp(self, value):
+        if value < 0 or value is None:
+            self._damp = ASPC.default_damp(self.chainlength)
+        else:
+            self._damp = value
+
+    @damp.deleter
+    def damp(self):
+        """
+        """
+        del self._damp
 
     @property
     def coeffs(self):
@@ -42,74 +58,70 @@ class ASPC(object):
 
         raise AttributeError("can't set coefficients, automagically handled by setting chainlength")
 
-    def predict(self, history, coeffs):
+    def predict(self):
         """
         """
 
-        prdat = np.zeros_like(history[0])
+        prdat = np.zeros_like(self.history[0])
 
-        for c, h in zip(coeffs, history):
+        for c, h in zip(self.coeffs, self.history):
             prdat += c*h
 
         return prdat
 
-    def correct(self, prdat, func, corrargs=()):
+    def correct(self, prdat=None):
         """
         """
 
-        #call f to get correction on top of prediction
-
-        if func is None:
-            sys.stdout('Cannot do correction without corresponding function\n')
+        #FUX| raise errors and stuff
+        if prdat is None:
+            sys.stderr.write('Cannot do correction without prediction')
             sys.exit(1)
 
-        crdat = func(prdat, *corrargs)
+        if self.correction is None:
+            sys.stderr.write('Cannot do correction without corresponding function\n')
+            sys.exit(1)
+
+        crdat = self.correction(prdat, *self.corrargs)
 
         return crdat
 
-    def get_final_solution(self, prdat, crdat, damp=None):
+    def get_final_solution(self, prdat, crdat):
         """
         """
 
-        if damp is None:
-            damp = self.damp
+        return self.damp * crdat + (1.-self.damp) * prdat
 
-        return damp * crdat + (1.-damp) * prdat
-
-    def update_history(self, history, data):
+    def update_history(self, data):
         """
         """
 
-        #FUDO| is that fine w.r.t. garbage collection later on?
-        #FUDO| i.e., what will happen to history[-1] after call history = update_history(history, data)
+        if len(self.history) != 0:
+            self.history.pop()
 
-        newhist = [data]
-
-        for h in history[:-1]:
-            newhist.append(h)
-
-        self.history = newhist
+        self.history.appendleft(data)
 
     def next(self):
         """
         """
 
         #FUDO| should we use also a different total chain length? What would happen then?
+
         if self.countme <= self._totlength:
-            self.coeffs = self.get_coefficients(self.countme - 2)
+            self.chainlength = self.countme - 2
             print 'COEFFS', self.coeffs
 
         #FUDO| should I pass everyting as argument again?
 
-        prdat = self.predict(self.history, self.coeffs)
+        prdat = self.predict()
 
         #the predicted data should be used in the correction function according to what is appropriate there
 
-        crdat = self.correct(prdat, self.correction, self.corrargs)
+        crdat = self.correct(prdat)
 
         data = self.get_final_solution(prdat, crdat)
 
-        self.update_history(self.history, data)
+        self.update_history(data)
 
         self.countme += 1
 
@@ -179,12 +191,18 @@ class ASPC(object):
         """
 
         self._chainlength = chainlength
-        self._totlength = self._chainlength + 2
+        #self._totlength = self._chainlength + 2
 
         self._coeffs = ASPC.generate_coefficients(self._chainlength, self._totlength)
 
         #FUDO| need to update all other involved quantities
         #FUDO| update history
+
+        while self._totlength > len(self.history):
+            self.history.append(np.zeros_like(self.history[0]))
+
+        while self._totlength < len(self.history):
+            self.history.pop()
 
     @chainlength.deleter
     def chainlength(self):
