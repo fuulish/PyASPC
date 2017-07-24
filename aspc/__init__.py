@@ -109,7 +109,7 @@ class ASPC(object):
 
         if self.countme <= self._totlength:
             self.chainlength = self.countme - 2
-            print 'COEFFS', self.coeffs
+            #print 'COEFFS', self.coeffs
 
         #FUDO| should I pass everyting as argument again?
 
