@@ -12,37 +12,35 @@ class ASPC(object):
         """
 
         self.debug = debug
-        self.chainlnth = chainlnth
+        self.chainlength = chainlnth
         self.correction = correction
         self.corrargs = corrargs
 
         if damp is not None:
             self.damp = damp
         else:
-            self.damp = self.get_default_damp(self.chainlnth)
-
-        self.totlnth = chainlnth + 2
-
-        self.coeffs = self.get_coefficients(chainlnth=self.chainlnth)
+            self.damp = ASPC.default_damp(self.chainlength)
 
         #FUDO| this is crap
         self.history = []
-        for i in range(self.totlnth):
+        for i in range(self._totlength):
             self.history.append(np.zeros_like(data))
 
         self.update_history(self.history, data)
         self.countme = 1
 
-    def get_coefficients(self, chainlnth=None):
+    @property
+    def coeffs(self):
+        """
+        """
+        return self._coeffs
+
+    @coeffs.setter
+    def coeffs(self, value):
         """
         """
 
-        if chainlnth is None:
-            chainlnth = self.chainlnth
-
-        coeffs = self.generate_coefficients(chainlnth)
-
-        return coeffs
+        raise AttributeError("can't set coefficients, automagically handled by setting chainlength")
 
     def predict(self, history, coeffs):
         """
@@ -97,7 +95,7 @@ class ASPC(object):
         """
 
         #FUDO| should we use also a different total chain length? What would happen then?
-        if self.countme <= self.totlnth:
+        if self.countme <= self._totlength:
             self.coeffs = self.get_coefficients(self.countme - 2)
             print 'COEFFS', self.coeffs
 
@@ -117,26 +115,26 @@ class ASPC(object):
 
         return data
 
-    def generate_coefficients(self, lnth):
+    @staticmethod
+    def generate_coefficients(length, totlength):
         """
         """
 
         coeffs = []
 
-        ordpo = lnth + 1
+        ordpo = length + 1
 
-        #FUDO| may get totlnth as an argument as well
-        #FUDO| check whether lnth+2 > totlnth (consistency)
+        #FUDO| may get _totlength as an argument as well
+        #FUDO| check whether lnth+2 > _totlength (consistency)
 
-        totlnth = self.totlnth
-
-        for i in range(totlnth):
+        for i in range(totlength):
             k = i + 1
-            coeffs.append(self.get_Bj(ordpo, k))
+            coeffs.append(ASPC.calculate_Bj(ordpo, k))
 
         return coeffs
 
-    def get_Bj(self, n, k):
+    @staticmethod
+    def calculate_Bj(n, k):
         """
         """
 
@@ -145,35 +143,54 @@ class ASPC(object):
         sgn = np.power(-1, k+1)
 
         #FUDO| checking against Baranyai/Kiss values (up to k = 4: http://pubs.acs.org/doi/full/10.1021/ct5009069)
-        if self.debug:
+        #if self.debug:
 
-            gcd_val = gcd(nmrtr, dnmntr)
-            print("COEFF is %i %i / %i" %(sgn, nmrtr / gcd_val, dnmntr / gcd_val))
+        #    gcd_val = gcd(nmrtr, dnmntr)
+        #    print("COEFF is %i %i / %i" %(sgn, nmrtr / gcd_val, dnmntr / gcd_val))
 
-            frst = sgn * nmrtr / dnmntr
-            scnd = np.power(-1, k+1) * k * binom (2 * n + 2, n + 1 - k ) / binom (2 * n, n);
+        #    frst = sgn * nmrtr / dnmntr
+        #    scnd = np.power(-1, k+1) * k * binom (2 * n + 2, n + 1 - k ) / binom (2 * n, n);
 
-            if frst != scnd:
-                print("EEEEERRROR.....")
-                sys.exit(1)
+        #    if frst != scnd:
+        #        print("EEEEERRROR.....")
+        #        sys.exit(1)
 
         return sgn * nmrtr / dnmntr
         #return np.power(-1, k+1) * k * binom (2 * n + 2, n + 1 - k ) / binom (2 * n, n);
 
-    def get_default_damp(self, lnth):
+    @staticmethod
+    def default_damp(lnth):
         """
         """
 
         return (lnth + 2.) / (2.*lnth + 3.);
 
-    def set_chainlnth(self, chainlnth):
+    @property
+    def chainlength(self):
         """
+        I am the chain length of the predictor
+        """
+        return self._chainlength
+
+    @chainlength.setter
+    def chainlength(self, chainlength):
+        """
+        recalculates and sets the coefficients for a given chainlength
         """
 
-        self.chainlnth = chainlnth
-        self.totlnth = self.chainlnth + 2
+        self._chainlength = chainlength
+        self._totlength = self._chainlength + 2
 
-        self.coeffs = self.get_coefficients(chainlnth=self.chainlnth)
+        self._coeffs = ASPC.generate_coefficients(self._chainlength, self._totlength)
 
         #FUDO| need to update all other involved quantities
         #FUDO| update history
+
+    @chainlength.deleter
+    def chainlength(self):
+        """
+        """
+
+        del self._chainlength
+        del self._totlength
+        del self._coeffs
