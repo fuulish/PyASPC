@@ -60,7 +60,7 @@ class ASPC(object):
         """
         """
 
-        raise AttributeError("can't set total length of chain, please set chainlength attribut")
+        raise AttributeError("can't set total length of chain, please set chainlength attribute")
 
     @property
     def coeffs(self):
