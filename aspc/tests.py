@@ -1,5 +1,7 @@
 from aspc import ASPC
 import numpy as np
+from fractions import gcd
+from scipy.special import binom
 
 import unittest
 
@@ -39,6 +41,26 @@ class TestASPCcoeffs(unittest.TestCase):
         self.assertEqual(a.coeffs[3], -22./21.)
         self.assertEqual(a.coeffs[4], 5./21.)
         self.assertEqual(a.coeffs[5], -1./42.)
+
+    def test_coeffs(self):
+
+        length = 100
+        totlength = 102
+        ordpo = length + 1
+
+        for i in range(totlength):
+            k = i+1
+            n = ordpo
+
+            nmrtr = k * binom(2 * n + 2, n + 1 - k)
+            dnmntr = binom(2 * n, n)
+            gcd_val = gcd(nmrtr, dnmntr)
+
+            sgn = np.power(-1, k+1)
+            frst = sgn * nmrtr / dnmntr
+            scnd = np.power(-1, k+1) * k * binom (2 * n + 2, n + 1 - k ) / binom (2 * n, n);
+
+            self.assertEqual(frst, scnd)
 
 class TestASPCpredict(unittest.TestCase):
     def test_predict_correct_simple(self):

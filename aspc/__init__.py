@@ -1,7 +1,6 @@
 import sys
 import numpy as np
 from scipy.special import binom
-from fractions import gcd
 from collections import deque
 
 #FUDO| make more methods have less arguments, only those where external interference is expected
@@ -157,21 +156,7 @@ class ASPC(object):
         dnmntr = binom(2 * n, n)
         sgn = np.power(-1, k+1)
 
-        #FUDO| checking against Baranyai/Kiss values (up to k = 4: http://pubs.acs.org/doi/full/10.1021/ct5009069)
-        #if self.debug:
-
-        #    gcd_val = gcd(nmrtr, dnmntr)
-        #    print("COEFF is %i %i / %i" %(sgn, nmrtr / gcd_val, dnmntr / gcd_val))
-
-        #    frst = sgn * nmrtr / dnmntr
-        #    scnd = np.power(-1, k+1) * k * binom (2 * n + 2, n + 1 - k ) / binom (2 * n, n);
-
-        #    if frst != scnd:
-        #        print("EEEEERRROR.....")
-        #        sys.exit(1)
-
         return sgn * nmrtr / dnmntr
-        #return np.power(-1, k+1) * k * binom (2 * n + 2, n + 1 - k ) / binom (2 * n, n);
 
     @staticmethod
     def default_damp(length):
