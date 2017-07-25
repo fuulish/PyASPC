@@ -179,12 +179,13 @@ class ASPC(object):
         """
 
         self._chainlength = chainlength
-        #self._totlength = self._chainlength + 2
+
+        totlength = chainlength + 2
+
+        if totlength > self._totlength:
+            self._totlength = totlength
 
         self._coeffs = ASPC.generate_coefficients(self._chainlength, self._totlength)
-
-        #FUDO| need to update all other involved quantities
-        #FUDO| update history
 
         while self._totlength > len(self.history):
             self.history.append(np.zeros_like(self.history[0]))
