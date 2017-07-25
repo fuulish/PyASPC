@@ -7,7 +7,7 @@ from collections import deque
 #FUDO| make more methods have less arguments, only those where external interference is expected
 
 class ASPC(object):
-    def __init__(self, data, chainlnth=2, damp=None, debug=False, correction=None, corrargs=()):
+    def __init__(self, data, chainlength=2, damp=None, debug=False, correction=None, corrargs=(), gradualstart=True):
         """
         initialize ASPC Python object
         """
@@ -18,12 +18,13 @@ class ASPC(object):
         self.update_history(data)
 
         self.debug = debug
-        self._totlength = chainlnth + 2
-        self.chainlength = chainlnth
+        self._totlength = chainlength + 2
+        self.chainlength = chainlength
         self.correction = correction
         self.corrargs = corrargs
         self.damp = damp
 
+        self.gradualstart = gradualstart
         self.countme = 1
 
     @property
@@ -73,14 +74,16 @@ class ASPC(object):
         """
         """
 
-        #FUX| raise errors and stuff
+        #FUX| in principle this could happen, although it doesn't make much sense
         if prdat is None:
-            sys.stderr.write('Cannot do correction without prediction')
-            sys.exit(1)
+            raise RuntimeError('Cannot do correction without prediction, the point is to use prediction as initial guess for the correction')
 
+        #FUX| for now it's a safety measure, define a correction or GTFO
         if self.correction is None:
-            sys.stderr.write('Cannot do correction without corresponding function\n')
-            sys.exit(1)
+            raise RuntimeError('Cannot do correction without corresponding function')
+
+        #if self.correction is None:
+        #    return prdat
 
         crdat = self.correction(prdat, *self.corrargs)
 
@@ -107,7 +110,7 @@ class ASPC(object):
 
         #FUDO| should we use also a different total chain length? What would happen then?
 
-        if self.countme <= self._totlength:
+        if self.gradualstart and self.countme <= self._totlength:
             self.chainlength = self.countme - 2
             #print 'COEFFS', self.coeffs
 
@@ -137,7 +140,7 @@ class ASPC(object):
         ordpo = length + 1
 
         #FUDO| may get _totlength as an argument as well
-        #FUDO| check whether lnth+2 > _totlength (consistency)
+        #FUDO| check whether length+2 > _totlength (consistency)
 
         for i in range(totlength):
             k = i + 1
@@ -171,11 +174,11 @@ class ASPC(object):
         #return np.power(-1, k+1) * k * binom (2 * n + 2, n + 1 - k ) / binom (2 * n, n);
 
     @staticmethod
-    def default_damp(lnth):
+    def default_damp(length):
         """
         """
 
-        return (lnth + 2.) / (2.*lnth + 3.);
+        return (length + 2.) / (2.*length + 3.);
 
     @property
     def chainlength(self):
@@ -210,5 +213,3 @@ class ASPC(object):
         """
 
         del self._chainlength
-        del self._totlength
-        del self._coeffs
