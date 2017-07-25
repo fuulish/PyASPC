@@ -13,17 +13,21 @@ class ASPC(object):
 
         #FUX history and damp to properties as well?
 
+        self._totlength = chainlength + 2
+        self._chainlength = chainlength
+        self._gradualstart = gradualstart
+
         self.history = deque([])
         self.update_history(data)
 
+        self.update_chain()
+
         self.debug = debug
-        self._totlength = chainlength + 2
-        self.chainlength = chainlength
+
         self.correction = correction
         self.corrargs = corrargs
         self.damp = damp
 
-        self.gradualstart = gradualstart
         self.countme = 1
 
     @property
@@ -44,6 +48,19 @@ class ASPC(object):
         """
         """
         del self._damp
+
+    @property
+    def totlength(self):
+        """
+        """
+        return self._totlength
+
+    @totlength.setter
+    def totlength(self, value):
+        """
+        """
+
+        raise AttributeError("can't set total length of chain, please set chainlength attribut")
 
     @property
     def coeffs(self):
@@ -182,8 +199,33 @@ class ASPC(object):
 
         totlength = chainlength + 2
 
+        if not self.gradualstart:
+            if totlength < self._totlength:
+                self._totlength = totlength
+
         if totlength > self._totlength:
             self._totlength = totlength
+
+        self.update_chain()
+
+    @chainlength.deleter
+    def chainlength(self):
+        """
+        """
+
+        del self._chainlength
+
+    @property
+    def gradualstart(self):
+        return self._gradualstart
+
+    @gradualstart.setter
+    def gradualstart(self, value):
+
+        self._gradualstart = value
+        self.chainlength = self._chainlength
+
+    def update_chain(self):
 
         self._coeffs = ASPC.generate_coefficients(self._chainlength, self._totlength)
 
@@ -192,10 +234,3 @@ class ASPC(object):
 
         while self._totlength < len(self.history):
             self.history.pop()
-
-    @chainlength.deleter
-    def chainlength(self):
-        """
-        """
-
-        del self._chainlength
