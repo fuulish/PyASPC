@@ -3,15 +3,11 @@ import numpy as np
 from scipy.special import binom
 from collections import deque
 
-#FUDO| make more methods have less arguments, only those where external interference is expected
-
 class ASPC(object):
     def __init__(self, data, chainlength=2, damp=None, debug=False, correction=None, corrargs=(), gradualstart=True):
         """
         initialize ASPC Python object
         """
-
-        #FUX history and damp to properties as well?
 
         self._totlength = chainlength + 2
         self._chainlength = chainlength
@@ -98,9 +94,6 @@ class ASPC(object):
         if self.correction is None:
             raise RuntimeError('Cannot do correction without corresponding function')
 
-        #if self.correction is None:
-        #    return prdat
-
         crdat = self.correction(prdat, *self.corrargs)
 
         return crdat
@@ -124,17 +117,10 @@ class ASPC(object):
         """
         """
 
-        #FUDO| should we use also a different total chain length? What would happen then?
-
         if self.gradualstart and self.countme <= self._totlength:
             self.chainlength = self.countme - 2
-            #print 'COEFFS', self.coeffs
-
-        #FUDO| should I pass everyting as argument again?
 
         prdat = self.predict()
-
-        #the predicted data should be used in the correction function according to what is appropriate there
 
         crdat = self.correct(prdat)
 
@@ -154,9 +140,6 @@ class ASPC(object):
         coeffs = []
 
         ordpo = length + 1
-
-        #FUDO| may get _totlength as an argument as well
-        #FUDO| check whether length+2 > _totlength (consistency)
 
         for i in range(totlength):
             k = i + 1
