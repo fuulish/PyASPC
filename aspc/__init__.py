@@ -7,6 +7,20 @@ class ASPC(object):
     def __init__(self, data, chainlength=2, damp=None, debug=False, correction=None, corrargs=(), gradualstart=True):
         """
         initialize ASPC Python object
+
+        args:
+            data            - initial guess (numpy.ndarray)
+            chainlength     - length of predictor chain (int)
+            damp            - damping factor to join predictor and corrector (float)
+            debug           - turn on/off debug output (bool)
+            correction      - function that performs correction step (function)
+            corrargs        - additional arguments for correction function (list)
+            gradualstart    - increase predictor chain according to (initially unfilled) history
+
+        notes:
+            The correction function takes as first argument the prediction in form of a numpy.ndarray. All other, optional,
+            arguments have to be passed through the corrargs list.
+
         """
 
         self._totlength = chainlength + 2
@@ -34,6 +48,12 @@ class ASPC(object):
 
     @damp.setter
     def damp(self, value):
+        """
+        set damping factor
+        arg:
+            value - damping factor, if < 0 or None, then default parameter generated
+        """
+
         if value < 0 or value is None:
             self._damp = ASPC.default_damp(self.chainlength)
         else:
@@ -73,6 +93,7 @@ class ASPC(object):
 
     def predict(self):
         """
+        predict new initial guess for corrector based on history of previous steps
         """
 
         prdat = np.zeros_like(self.history[0])
@@ -84,6 +105,9 @@ class ASPC(object):
 
     def correct(self, prdat=None):
         """
+        corrector step, one step in the self-consistent solution of the problem
+        args:
+            prdat - initial guess from predictor
         """
 
         #FUX| in principle this could happen, although it doesn't make much sense
@@ -100,6 +124,7 @@ class ASPC(object):
 
     def get_final_solution(self, prdat, crdat):
         """
+        combine predictor and corrector to get final result
         """
 
         return self.damp * crdat + (1.-self.damp) * prdat
@@ -115,6 +140,7 @@ class ASPC(object):
 
     def next(self):
         """
+        perform one complete cycle in predictor/corrector scheme
         """
 
         if self.gradualstart and self.countme <= self._totlength:
@@ -150,6 +176,7 @@ class ASPC(object):
     @staticmethod
     def calculate_Bj(n, k):
         """
+        calculate actual numeric values of coefficients used in predictor chain
         """
 
         nmrtr = k * binom(2 * n + 2, n + 1 - k)
@@ -176,6 +203,8 @@ class ASPC(object):
     def chainlength(self, chainlength):
         """
         recalculates and sets the coefficients for a given chainlength
+        args:
+            chainlength - (int)
         """
 
         self._chainlength = chainlength
@@ -200,15 +229,23 @@ class ASPC(object):
 
     @property
     def gradualstart(self):
+        """
+        """
+
         return self._gradualstart
 
     @gradualstart.setter
     def gradualstart(self, value):
+        """
+        """
 
         self._gradualstart = value
         self.chainlength = self._chainlength
 
     def update_chain(self):
+        """
+        remove old data, add placeholder data; all to fit to predictor chain length
+        """
 
         self._coeffs = ASPC.generate_coefficients(self._chainlength, self._totlength)
 
