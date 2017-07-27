@@ -28,7 +28,7 @@ class ASPC(object):
         self._gradualstart = gradualstart
 
         self.history = deque([])
-        self.update_history(data)
+        self.update_history(np.array(data))
 
         self.update_chain()
 
