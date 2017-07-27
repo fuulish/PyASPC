@@ -18,8 +18,8 @@ class ASPC(object):
             gradualstart    - increase predictor chain according to (initially unfilled) history
 
         notes:
-            The correction function takes as first argument the prediction in form of a numpy.ndarray. All other, optional,
-            arguments have to be passed through the corrargs list.
+            The correction function takes as first argument the prediction in form of a numpy.ndarray. All other arguments
+            to the correction function have to be passed through the corrargs list.
 
         """
 
