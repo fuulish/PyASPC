@@ -138,7 +138,7 @@ class ASPC(object):
 
         self.history.appendleft(data)
 
-    def next(self):
+    def __call__(self):
         """
         perform one complete cycle in predictor/corrector scheme
         """

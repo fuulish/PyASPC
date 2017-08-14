@@ -19,5 +19,5 @@ print a.history
 print a.coeffs
 
 for i in range(6):
-    d = a.next()
+    d = a()
     print d

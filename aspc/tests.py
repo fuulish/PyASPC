@@ -72,7 +72,7 @@ class TestASPCpredict(unittest.TestCase):
         a = ASPC(data, chainlength=10, correction=corrfun)
 
         for i in range(1000):
-            d = a.next()
+            d = a()
 
         #self.assertEqual(d, data)
         np.testing.assert_allclose(d, data)
@@ -103,7 +103,7 @@ class TestASPCpredict(unittest.TestCase):
         np.testing.assert_allclose(cor, cor_aspc)
 
         nxt = a.damp * cor + (1.-a.damp) * prd
-        nxt_aspc = a.next()
+        nxt_aspc = a()
 
         np.testing.assert_allclose(nxt, nxt_aspc)
 
