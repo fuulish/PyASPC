@@ -1,4 +1,4 @@
-# PyASPC
+# pyASPC
 Implementation of always-stable predictor corrector skeleton to be used for explicit propagation instead of iterative solution of self-consistent field equations.
 
 # Install
